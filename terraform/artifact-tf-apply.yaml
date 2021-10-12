@@ -1,0 +1,78 @@
+# terraform apply yaml template using artifact
+
+parameters:
+- name: environmentServiceName
+  type: string
+  # e.g. 'Sandbox Connection'
+
+- name: tfversion
+  type: string
+  # e.g. '0.15.1'
+
+- name: artifactProject
+  type: string
+
+- name: artifactName
+  type: string
+
+- name: pipelineNumber
+  type: string
+
+- name: applyTerraformChange
+  type: boolean
+  default: false
+
+steps:
+  # Terraform validate, plan, and apply
+  # Set checkout to none, using artifact instead of source code
+  - checkout: none
+
+  - task: DownloadPipelineArtifact@2
+    inputs:
+      source: 'specific'
+      project: ${{ parameters.artifactProject }}
+      pipeline: ${{ parameters.pipelineNumber }}
+      runVersion: 'latest'
+      artifact: ${{ parameters.artifactName }}
+      path: '$(System.ArtifactsDirectory)/${{ parameters.artifactName }}'
+
+  - task: qetza.replacetokens.replacetokens-task.replacetokens@3
+    displayName: 'Replace tokens in **.tf**'
+    inputs:
+      rootDirectory: '$(System.ArtifactsDirectory)/${{ parameters.artifactName }}'
+      targetFiles: '**'
+      tokenPrefix: '__'
+      tokenSuffix: '__'
+
+  - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-installer.TerraformInstaller@0
+    displayName: 'Use Terraform ${{ parameters.tfversion }}'
+    inputs:
+      terraformVersion: '${{ parameters.tfversion }}'
+
+  - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
+    displayName: 'terraform init'
+    inputs:
+      command: init
+      workingDirectory: '$(System.ArtifactsDirectory)/${{ parameters.artifactName }}'
+
+  - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
+    displayName: 'terraform validate'
+    inputs:
+      workingDirectory: '$(System.ArtifactsDirectory)/${{ parameters.artifactName }}'
+
+  - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
+    displayName: 'terraform plan'
+    inputs:
+      command: plan
+      workingDirectory: '$(System.ArtifactsDirectory)/${{ parameters.artifactName }}'
+      environmentServiceName: '${{ parameters.environmentServiceName }}'
+      allowTelemetryCollection: false
+
+  - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
+    displayName: 'terraform apply'
+    condition: and(succeeded(), eq('${{ parameters.applyTerraformChange }}', 'true'))
+    inputs:
+      command: apply
+      workingDirectory: '$(System.ArtifactsDirectory)/${{ parameters.artifactName }}'
+      environmentServiceName: '${{ parameters.environmentServiceName }}'
+    timeoutInMinutes: 60
