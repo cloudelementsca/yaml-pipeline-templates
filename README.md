@@ -1,20 +1,30 @@
 # Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+Create YAML templates by extract commonly used tasks into templates that can be used by other YAML pipelines to provide consistent and re-usable jobs/stages.
 
 # Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
+## 1.	Using the YAML templates
 
-# Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+In the YAML template, you will need to create a resource reference to the YAML template repository
 
-# Contribute
-TODO: Explain how other users and developers can contribute to make your code better. 
+In the example below, repository *templates* is the resource name that can be referenced later. The name attribute has the specific inforamtion of the repository. To use the template from a specific branch or tag, the *ref* attribute can be used.
 
-If you want to learn more about creating good readme files then refer the following [guidelines](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-a-readme?view=azure-devops). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
+```
+resources:
+  repositories:
+  - repository: templates
+    type: git
+    name: Automation/automation.yaml-pipeline-templates
+    ref: refs/heads/<branch name>
+```
+
+## 2.	Reference the template in your YAML pipeline
+In you YAML stage, job or steps, use the template key to provide reference to the file and template resource name. Use parameters to provide the required parameters for the template.
+
+In the example below, *terraform/src-tf-plan.yaml* refers to the path and file name of the resource *templates*. 
+
+```
+steps:
+- template: terraform/src-tf-plan.yaml@templates
+  parameters:
+    ...
+```

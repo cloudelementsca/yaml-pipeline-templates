@@ -1,0 +1,74 @@
+name: 0.0.$(Rev:r)-dev.1
+pool: 'My Agent Pool'
+variables:
+- group: hub-tf-state-dev
+- name: tfversion
+  value: '0.15.1'
+- name: environment
+  value: 'dev'
+- name: serviceConnection
+  value: 'MyServiceConnection'
+trigger:
+  batch: true
+resources:
+  repositories:
+    - repository: templates
+      type: git
+      name: Automation/yaml-pipeline-templates
+      ref: refs/heads/main
+stages:
+- stage: deployResources
+  displayName: 'Run Terraform Plan'
+  jobs:
+  - job: terraformPlan
+    displayName: 'Run Terraform Plan'
+    steps:
+    - template: terraform/src-tf-plan.yaml@templates
+      parameters:
+        # Optional 'preTerraformSetup' object parameter allows you run other tasks as part of the template
+        preTerraformSetup:
+          - task: CopyFiles@2
+            displayName: 'Copy Terraform main files'
+            inputs:
+              sourceFolder: 'terraform/MyModule'
+              contents: |
+               *.tf
+               config/$(environment)/*.auto.tfvars
+              TargetFolder: '$(System.DefaultWorkingDirectory)/run/terraform'
+              cleanTargetFolder: true
+              flattenFolders: true
+        workingDirectory: '$(System.DefaultWorkingDirectory)/run/terraform'
+        environmentServiceName: '$(serviceConnection)'
+        tfversion: '$(tfversion)' 
+  - job: manualIntervention
+    displayName: 'Validate Terraform Plan'
+    pool: server
+    dependsOn: terraformPlan
+    steps:
+    - task: ManualValidation@0
+      inputs:
+        notifyUsers: |
+          larry.dave@example.com
+        instructions: "Please validate the output from the terraform plan."
+        onTimeout: 'reject'
+  - job: terraformApply
+    displayName: 'Run Terraform Apply'
+    dependsOn: manualIntervention
+    steps:
+    - template: terraform/src-tf-apply.yaml@templates
+      parameters:
+      # Optional 'preTerraformSetup' object parameter allows you run other tasks as part of the template
+        preTerraformSetup:
+          - task: CopyFiles@2
+            displayName: 'Copy Terraform main files'
+            inputs:
+              sourceFolder: 'terraform/MyModule'
+              contents: |
+                *.tf
+                config/$(environment)/*.auto.tfvars
+              TargetFolder: '$(System.DefaultWorkingDirectory)/run/terraform'
+              cleanTargetFolder: true
+              flattenFolders: true
+        workingDirectory: '$(System.DefaultWorkingDirectory)/run/terraform'
+        environmentServiceName: '$(serviceConnection)'
+        tfversion: '$(tfversion)'
