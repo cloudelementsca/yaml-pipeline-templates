@@ -1,5 +1,5 @@
 # Introduction 
-Create YAML templates by extract commonly used tasks into templates that can be used by other YAML pipelines to provide consistent and re-usable jobs/stages.
+Create YAML templates by extracting commonly used tasks into templates that can be used by other YAML pipelines to provide consistent and re-usable jobs/stages.
 
 # Getting Started
 ## 1.	Using the YAML templates
