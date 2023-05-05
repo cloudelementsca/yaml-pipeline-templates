@@ -8,7 +8,7 @@ parameters:
 
 - name: artifactDirectory
   type: string
-  # e.g. '/terraform/run'
+  # e.g. '/terraform/artifact'
 
 - name: artifactName
   type: string
