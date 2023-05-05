@@ -18,13 +18,19 @@ parameters:
   type: object
   default: {}
 
+- name: preTfPlanPublishTasks
+  type: object
+  default: [] 
+
 steps:
 
   - bash: |
-      if( ${{ parameters.tfbackend }} )
+      if ${{ parameters.tfbackend }}
+      then
         terraform init -input=false -backend-config=${{ parameters.tfbackend }}
       else
         terraform init -input=false
+      fi
     displayName: 'terraform init'
     inputs:
       workingDirectory: '${{ parameters.workingDirectory }}'
@@ -36,6 +42,8 @@ steps:
     displayName: 'terraform plan'
     inputs:
       workingDirectory: '${{ parameters.workingDirectory }}'
+
+  - ${{ parameters.preTfPlanPublishTasks }}
 
   - task: PublishPipelineArtifact@1
     displayName: 'Publish TF Plan Output Artifact'
