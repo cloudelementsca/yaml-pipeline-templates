@@ -10,6 +10,10 @@ parameters:
   type: string
   # e.g. '/terraform/run'
 
+- name: artifactName
+  type: string
+  default: tfplan 
+
 - name: tfbackend
   type: string
   default: null
@@ -43,7 +47,7 @@ steps:
   - bash: |
       cd ${{ parameters.workingDirectory }}
       echo "Running terraform plan..."
-      
+
       terraform plan -out=tfplan -input=false 
     displayName: 'terraform plan'
     inputs:
@@ -55,4 +59,4 @@ steps:
     displayName: 'Publish TF Plan Output Artifact'
     inputs:
       targetPath: '${{ parameters.artifactDirectory }}'
-      artifact: tfplan
+      artifact: '${{ parameters.artifactName }}'
