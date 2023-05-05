@@ -25,6 +25,9 @@ parameters:
 steps:
 
   - bash: |
+      cd ${{ parameters.workingDirectory }}
+      echo "Running terraform init..."
+
       if ${{ parameters.tfbackend }}
       then
         terraform init -input=false -backend-config=${{ parameters.tfbackend }}
@@ -38,6 +41,9 @@ steps:
         ${{ insert }}: ${{ parameters.envVars }}
 
   - bash: |
+      cd ${{ parameters.workingDirectory }}
+      echo "Running terraform plan..."
+      
       terraform plan -out=tfplan -input=false 
     displayName: 'terraform plan'
     inputs:
