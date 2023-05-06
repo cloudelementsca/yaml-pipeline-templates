@@ -39,10 +39,9 @@ steps:
         terraform init -input=false
       fi
     displayName: 'terraform init'
-    inputs:
-      workingDirectory: '${{ parameters.workingDirectory }}'
-      env:
-        ${{ insert }}: ${{ parameters.envVars }}
+    workingDirectory: '${{ parameters.workingDirectory }}'
+    env:
+      ${{ insert }}: ${{ parameters.envVars }}
 
   - bash: |
       cd ${{ parameters.workingDirectory }}
