@@ -7,7 +7,7 @@ parameters:
   
 - name: envVars
   type: object
-  default: []
+  default: {}
   
 - name: tfbackend
   type: string
@@ -33,4 +33,6 @@ steps:
       terraform apply -auto-approve -input=false
     displayName: 'Run Terraform apply'
     workingDirectory: '${{ parameters.workingDirectory }}'
+    env: 
+      ${{ insert }}: ${{ parameters.envVars }} 
 

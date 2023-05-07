@@ -7,7 +7,7 @@ parameters:
  
 - name: envVars
   type: object
-  default: []
+  default: {}
 
 - name: tfbackend
   type: string
