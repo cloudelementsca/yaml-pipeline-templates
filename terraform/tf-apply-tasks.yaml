@@ -9,7 +9,7 @@ parameters:
   type: object
   default: []
   
-- name: tfBackend
+- name: tfbackend
   type: string
   default: null
 
@@ -23,16 +23,14 @@ steps:
         terraform init -input=false 
       fi
     displayName: 'terraform init' 
-    inputs: 
-      workingDirectory: '${{ parameters.workingDirectory }}' 
-      env: 
-        ${{ insert }}: ${{ parameters.envVars }} 
+    workingDirectory: '${{ parameters.workingDirectory }}' 
+    env: 
+      ${{ insert }}: ${{ parameters.envVars }} 
   
 
   - bash: |
       echo "Running terraform apply"
       terraform apply -auto-approve -input=false
     displayName: 'Run Terraform apply'
-    inputs:
-      workingDirectory: '${{ parameters.workingDirectory }}'
+    workingDirectory: '${{ parameters.workingDirectory }}'
 
