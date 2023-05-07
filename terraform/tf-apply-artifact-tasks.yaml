@@ -32,7 +32,7 @@ steps:
 
       if $tfBackend
       then
-        terraform init -input=false -backend-config="${{ parameters.tfBackend}}"
+        terraform init -input=false -backend-config="${{ parameters.tfbackend}}"
       else
         terraform init -input=false
       fi
