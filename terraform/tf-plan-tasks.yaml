@@ -1,0 +1,61 @@
+# terraform plan yaml template
+
+parameters:
+
+- name: workingDirectory
+  type: string
+  # e.g. '/terraform/run'
+
+- name: artifactDirectory
+  type: string
+  # e.g. '/terraform/artifact'
+
+- name: artifactName
+  type: string
+  default: tfplan 
+
+- name: tfbackend
+  type: string
+  default: null
+
+- name: 'envVars'
+  type: object
+  default: {}
+
+- name: preTfPlanPublishTasks
+  type: object
+  default: [] 
+
+steps:
+
+  - bash: |
+      cd ${{ parameters.workingDirectory }}
+      echo "Running terraform init..."
+
+      if ${{ parameters.tfbackend }}
+      then
+        terraform init -input=false -backend-config=${{ parameters.tfbackend }}
+      else
+        terraform init -input=false
+      fi
+    displayName: 'terraform init'
+    workingDirectory: '${{ parameters.workingDirectory }}'
+    env:
+      ${{ insert }}: ${{ parameters.envVars }}
+
+  - bash: |
+      cd ${{ parameters.workingDirectory }}
+      echo "Running terraform plan..."
+
+      terraform plan -out=tfplan -input=false 
+    displayName: 'terraform plan'
+    inputs:
+      workingDirectory: '${{ parameters.workingDirectory }}'
+
+  - ${{ parameters.preTfPlanPublishTasks }}
+
+  - task: PublishPipelineArtifact@1
+    displayName: 'Publish TF Plan Output Artifact'
+    inputs:
+      targetPath: '${{ parameters.artifactDirectory }}'
+      artifact: '${{ parameters.artifactName }}'
