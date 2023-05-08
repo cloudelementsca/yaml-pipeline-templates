@@ -1,0 +1,38 @@
+# terraform apply yaml template
+
+parameters:
+
+- name: workingDirectory
+  type: string
+  
+- name: envVars
+  type: object
+  default: {}
+  
+- name: tfbackend
+  type: string
+  default: null
+
+steps:
+
+  - bash: | 
+      if ${{ parameters.tfbackend }} 
+      then 
+        terraform init -input=false -backend-config=${{ parameters.tfbackend }} 
+      else 
+        terraform init -input=false 
+      fi
+    displayName: 'terraform init' 
+    workingDirectory: '${{ parameters.workingDirectory }}' 
+    env: 
+      ${{ insert }}: ${{ parameters.envVars }} 
+  
+
+  - bash: |
+      echo "Running terraform apply"
+      terraform apply -auto-approve -input=false
+    displayName: 'Run Terraform apply'
+    workingDirectory: '${{ parameters.workingDirectory }}'
+    env: 
+      ${{ insert }}: ${{ parameters.envVars }} 
+
